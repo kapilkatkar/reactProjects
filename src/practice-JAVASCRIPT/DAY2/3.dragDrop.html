@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <style>
+      body {
+        height: 100vh;
+        margin: 20px;
+        font-family: Arial, sans-serif;
+      }
+      #stickyNotes {
+        display: flex;
+        gap: 15px;
+        flex-wrap: wrap;
+      }
+
+      #stickyNotes span {
+        background-color: #729772;
+        padding: 20px;
+        cursor: grab;
+        user-select: none;
+      }
+      #target {
+        height: 200px;
+        width: 100%;
+        margin-top: 20px;
+        padding: 20px;
+      }
+      #inputField {
+        height: 30px;
+        width: 227px;
+      }
+      .subtmitBtn {
+        padding: 8px;
+        width: 86px;
+      }
+    </style>
+  </head>
+  <body ondrop="drop(event)" ondragover="allowDrop(event)">
+    <input type="text" id="inputField" />
+    <button onclick="handleSubmit()" class="subtmitBtn">Submit</button>
+    <div id="stickyNotes"></div>
+  </body>
+</html>
+<script>
+  let inputHistory = [];
+  const handleSubmit = () => {
+    const input = document.getElementById("inputField").value;
+    console.log(input);
+    if (!input) {
+      return;
+    }
+    inputHistory.unshift(input);
+
+    if (inputHistory.length > 3) {
+      inputHistory.pop();
+    }
+
+    renderStickyNotes();
+    document.getElementById("inputField").value = "";
+  };
+  const dragStart = (ev) => {
+    console.log("drag start");
+    ev.dataTransfer.setData("text", ev.target.id);
+    ev.dataTransfer.setData("noteIndex", ev.target.dataset.index);
+  };
+  function allowDrop(ev) {
+    ev.preventDefault();
+  }
+
+  function drop(ev) {
+    ev.preventDefault();
+    console.log("drop triggered");
+    var data = ev.dataTransfer.getData("text");
+    var noteIndex = ev.dataTransfer.getData("noteIndex");
+    var draggedElement = document.getElementById(data);
+    if (!draggedElement) return;
+
+    var dropTarget = ev.target.closest("body, #stickyNotes");
+    if (!dropTarget) return;
+
+    if (dropTarget.id === "stickyNotes") {
+      // Append to stickyNotes container
+      dropTarget.appendChild(draggedElement);
+    } else {
+      // Append to body directly
+      var rect = dropTarget.getBoundingClientRect();
+      var offsetX = ev.clientX - rect.left;
+      var offsetY = ev.clientY - rect.top;
+      draggedElement.style.position = "absolute";
+      draggedElement.style.left = offsetX + "px";
+      draggedElement.style.top = offsetY + "px";
+      document.body.appendChild(draggedElement);
+
+      var noteId = data;
+      var noteIndex = parseInt(noteId.replace("note", ""));
+      inputHistory.splice(noteIndex, 1);
+      // Re-render sticky notes
+      renderStickyNotes();
+    }
+  }
+
+  function renderStickyNotes() {
+    const stickyNotes = document.getElementById("stickyNotes");
+    stickyNotes.innerHTML = "";
+    for (let i = 0; i < inputHistory.length; i++) {
+      const note = document.createElement("span");
+      note.textContent = inputHistory[i];
+      stickyNotes.appendChild(note);
+      note.setAttribute("draggable", "true");
+      note.setAttribute("id", `note${i}`);
+      note.style.backgroundColor = "#729772";
+      note.style.padding = "20px";
+      note.addEventListener("dragstart", dragStart);
+    }
+  }
+</script>
