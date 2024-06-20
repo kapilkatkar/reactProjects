@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>products with search option</title>
+    <style>
+      #products {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 20px;
+      }
+      .card {
+        width: 250px;
+        border: 1px solid silver;
+        padding: 20px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+      }
+      .product-img {
+        height: 100px;
+        width: 100px;
+      }
+      #search {
+        height: 30px;
+        width: 350px;
+      }
+      .main-conatiner {
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="main-conatiner">
+      <input
+        type="search"
+        name="search"
+        id="search"
+        placeholder="search here"
+      />
+      <div id="products"></div>
+    </div>
+  </body>
+</html>
+<script>
+  let receivedObj = [];
+
+  const result = fetch("https://fakestoreapi.com/products")
+    .then((data) => data.json())
+    .then((data) => {
+      console.log(data);
+      receivedObj = data;
+      renderUI(data);
+    });
+
+  function renderUI(data) {
+    let mainContainer = document.getElementById("products");
+    mainContainer.innerHTML = "";
+
+    if (data.length === 0) {
+      mainContainer.innerHTML = "No products available.";
+      return;
+    }
+
+    for (let i = 0; i < data.length; i++) {
+      let cardElem = document.createElement("div");
+      cardElem.className = "card";
+
+      let imgElem = document.createElement("img");
+      imgElem.className = "product-img";
+      imgElem.src = data[i].image;
+      cardElem.appendChild(imgElem);
+
+      let priceElem = document.createElement("p");
+      priceElem.className = "product-price";
+      priceElem.innerHTML = data[i].price;
+      cardElem.appendChild(priceElem);
+
+      let titleElem = document.createElement("div");
+      titleElem.className = "product-title";
+      titleElem.innerHTML = data[i].title;
+      cardElem.appendChild(titleElem);
+
+      mainContainer.appendChild(cardElem);
+    }
+  }
+
+  document.getElementById("search").addEventListener("input", searchProducts);
+
+  function searchProducts() {
+    debounceTimer = setTimeout(() => {
+      let searchedInput = document
+        .getElementById("search")
+        .value.trim()
+        .toLowerCase();
+      console.log("searchedInput", searchedInput);
+
+      const searchResults = receivedObj.filter((product) =>
+        product.title.toLowerCase().includes(searchedInput)
+      );
+
+      renderUI(searchResults);
+    }, 600);
+  }
+</script>
